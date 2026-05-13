@@ -1,14 +1,17 @@
-name: Sync with upstream
+name: Sync IGL/Coach from upstream
+
+# Pulls ONLY changes to igl and coach fields from upstream's teams array.
+# Match is by team name. Everything else (tag, region, custom names,
+# HTML/CSS/JS structure, casters list, talent list, output format) is
+# left completely untouched.
 
 on:
   schedule:
-    # Every 6 hours — picks up roster moves with minimal lag
     - cron: '0 */6 * * *'
   workflow_dispatch:
 
 permissions:
   contents: write
-  issues: write
 
 jobs:
   sync:
@@ -31,77 +34,25 @@ jobs:
       - name: Fetch upstream
         run: git fetch upstream main
 
-      - name: Check if already up to date
-        id: check
+      - name: Sync IGL/Coach fields
+        env:
+          SYNC_COMMIT_MSG_FILE: ${{ runner.temp }}/sync-commit-msg.txt
+        run: node .github/scripts/sync-roster.js
+
+      - name: Detect changes
+        id: detect
         run: |
-          LOCAL=$(git rev-parse HEAD)
-          UPSTREAM=$(git rev-parse upstream/main)
-          BASE=$(git merge-base HEAD upstream/main)
-          if [ "$UPSTREAM" = "$BASE" ]; then
-            echo "status=up-to-date" >> $GITHUB_OUTPUT
+          if [ -n "$(git status --porcelain)" ]; then
+            echo "changed=true" >> $GITHUB_OUTPUT
           else
-            echo "status=needs-sync" >> $GITHUB_OUTPUT
+            echo "changed=false" >> $GITHUB_OUTPUT
           fi
 
-      - name: Attempt merge
-        if: steps.check.outputs.status == 'needs-sync'
-        id: merge
+      - name: Commit and push if changed
+        if: steps.detect.outputs.changed == 'true'
+        env:
+          SYNC_COMMIT_MSG_FILE: ${{ runner.temp }}/sync-commit-msg.txt
         run: |
-          set +e
-          git merge --no-edit upstream/main
-          echo "exit_code=$?" >> $GITHUB_OUTPUT
-
-      - name: Push merged result
-        if: steps.check.outputs.status == 'needs-sync' && steps.merge.outputs.exit_code == '0'
-        run: git push origin main
-
-      - name: Open issue on merge conflict
-        if: steps.check.outputs.status == 'needs-sync' && steps.merge.outputs.exit_code != '0'
-        uses: actions/github-script@v7
-        with:
-          script: |
-            const { execSync } = require('child_process');
-            const files = execSync('git diff --name-only --diff-filter=U').toString().trim() || '(none reported)';
-            const today = new Date().toISOString().split('T')[0];
-
-            const existing = await github.rest.issues.listForRepo({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              labels: 'upstream-sync',
-              state: 'open',
-            });
-            if (existing.data.length > 0) {
-              console.log('Open upstream-sync issue already exists, skipping.');
-              return;
-            }
-
-            await github.rest.issues.create({
-              owner: context.repo.owner,
-              repo: context.repo.repo,
-              title: `Upstream sync conflict — ${today}`,
-              labels: ['upstream-sync'],
-              body: [
-                'Automatic merge from `upstream/main` failed.',
-                '',
-                '**Conflicting files:**',
-                '```',
-                files,
-                '```',
-                '',
-                'Resolve manually:',
-                '```bash',
-                'git fetch upstream',
-                'git merge upstream/main',
-                '# resolve conflicts, then',
-                'git add -A && git commit',
-                'git push origin main',
-                '```',
-              ].join('\n'),
-            });
-
-      - name: Abort failed merge
-        if: steps.check.outputs.status == 'needs-sync' && steps.merge.outputs.exit_code != '0'
-        run: |
-          git merge --abort
-          echo "::error::Upstream merge conflict — issue opened, manual resolution required."
-          exit 1
+          git add index.html
+          git commit -F "$SYNC_COMMIT_MSG_FILE"
+          git push origin main
