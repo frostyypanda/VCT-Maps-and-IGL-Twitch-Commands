@@ -160,6 +160,70 @@
             user-select: none;
         }
 
+        /* ---- Tag input + save ---- */
+        .tag-row {
+            display: flex;
+            gap: 6px;
+            margin-top: 8px;
+            align-items: center;
+        }
+
+        .tag-input {
+            flex: 1;
+            min-width: 0;
+            padding: 8px 10px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.85rem;
+            font-weight: 600;
+            background: var(--surface-bright);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            text-transform: none;
+            letter-spacing: 0.5px;
+            transition: border-color 0.2s, box-shadow 0.2s;
+        }
+
+        .tag-input:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 2px var(--accent-glow);
+        }
+
+        .team-col:last-child .tag-input:focus {
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 2px var(--accent-2-glow);
+        }
+
+        .save-tag-btn {
+            flex-shrink: 0;
+            padding: 7px 10px;
+            font-size: 0.85rem;
+            background: var(--surface-bright);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+
+        .save-tag-btn:hover {
+            color: var(--text);
+            border-color: var(--text-dim);
+        }
+
+        .save-tag-btn.saved {
+            color: #4ade80;
+            border-color: #4ade80;
+        }
+
+        .tag-hint {
+            font-size: 0.7rem;
+            color: var(--text-dim);
+            margin-top: 4px;
+            font-style: italic;
+        }
+
         /* ---- BO toggle ---- */
         .bo-toggle {
             display: flex;
@@ -417,6 +481,11 @@
                 <select id="teamA">
                     <option value="" disabled selected>Pick a team…</option>
                 </select>
+                <div class="tag-row">
+                    <input type="text" id="tagA" class="tag-input" maxlength="10" placeholder="Tag (e.g. TH)" />
+                    <button id="saveTagA" class="save-tag-btn" type="button" title="Save abbreviation to memory">💾 Save</button>
+                </div>
+                <div class="tag-hint">Custom emote abbreviation — saved per team.</div>
             </div>
             <div class="vs">VS</div>
             <div class="team-col">
@@ -424,6 +493,11 @@
                 <select id="teamB">
                     <option value="" disabled selected>Pick a team…</option>
                 </select>
+                <div class="tag-row">
+                    <input type="text" id="tagB" class="tag-input" maxlength="10" placeholder="Tag (e.g. FNC)" />
+                    <button id="saveTagB" class="save-tag-btn" type="button" title="Save abbreviation to memory">💾 Save</button>
+                </div>
+                <div class="tag-hint">Custom emote abbreviation — saved per team.</div>
             </div>
         </div>
     </div>
@@ -517,6 +591,10 @@
         // ---- DOM REFS ----
         const teamAEl = document.getElementById("teamA");
         const teamBEl = document.getElementById("teamB");
+        const tagAEl = document.getElementById("tagA");
+        const tagBEl = document.getElementById("tagB");
+        const saveTagAEl = document.getElementById("saveTagA");
+        const saveTagBEl = document.getElementById("saveTagB");
         const bo3Btn = document.getElementById("bo3Btn");
         const bo5Btn = document.getElementById("bo5Btn");
         const mapRowsEl = document.getElementById("mapRows");
@@ -530,6 +608,47 @@
         const errorMsg = document.getElementById("errorMsg");
 
         let bestOf = 3;
+
+        // ---- TAG MEMORY (localStorage) ----
+        const TAG_STORAGE_PREFIX = "vct-tag:";
+
+        function loadSavedTag(teamName) {
+            try {
+                return localStorage.getItem(TAG_STORAGE_PREFIX + teamName);
+            } catch (e) { return null; }
+        }
+
+        function saveTagToMemory(teamName, tag) {
+            try {
+                localStorage.setItem(TAG_STORAGE_PREFIX + teamName, tag);
+                return true;
+            } catch (e) { return false; }
+        }
+
+        function applyTagFromTeam(selectEl, tagInputEl) {
+            if (!selectEl.value) { tagInputEl.value = ""; return; }
+            const team = JSON.parse(selectEl.value);
+            const saved = loadSavedTag(team.name);
+            tagInputEl.value = saved !== null ? saved : team.tag;
+        }
+
+        function setupSaveButton(btnEl, selectEl, tagInputEl) {
+            btnEl.addEventListener("click", () => {
+                if (!selectEl.value) return;
+                const team = JSON.parse(selectEl.value);
+                const tag = tagInputEl.value.trim();
+                if (!tag) return;
+                if (saveTagToMemory(team.name, tag)) {
+                    const orig = btnEl.textContent;
+                    btnEl.textContent = "✓ Saved";
+                    btnEl.classList.add("saved");
+                    setTimeout(() => {
+                        btnEl.textContent = orig;
+                        btnEl.classList.remove("saved");
+                    }, 1500);
+                }
+            });
+        }
 
         // ---- POPULATE TEAM SELECTS ----
         function populateSelect(selectEl) {
@@ -649,61 +768,98 @@
             errorMsg.classList.toggle("show", bothSelected && !different);
         }
 
-        teamAEl.addEventListener("change", validate);
-        teamBEl.addEventListener("change", validate);
+        teamAEl.addEventListener("change", () => {
+            applyTagFromTeam(teamAEl, tagAEl);
+            validate();
+        });
+        teamBEl.addEventListener("change", () => {
+            applyTagFromTeam(teamBEl, tagBEl);
+            validate();
+        });
         mapRowsEl.addEventListener("change", validate);
 
+        setupSaveButton(saveTagAEl, teamAEl, tagAEl);
+        setupSaveButton(saveTagBEl, teamBEl, tagBEl);
+
         // ---- GENERATE ----
+        function capitalizeMap(name) {
+            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
+        }
+
+        function sideToFull(side) {
+            return side === "atk" ? "Attack" : "Defense";
+        }
+
+        function currentTag(selectEl, tagInputEl) {
+            const typed = tagInputEl.value.trim();
+            if (typed) return typed;
+            return JSON.parse(selectEl.value).tag;
+        }
+
         generateBtn.addEventListener("click", () => {
             const a = JSON.parse(teamAEl.value);
             const b = JSON.parse(teamBEl.value);
+            const aTag = currentTag(teamAEl, tagAEl);
+            const bTag = currentTag(teamBEl, tagBEl);
             const slots = getMapSlots();
             const mapSelects = document.querySelectorAll(".map-select");
             const sideSelects = document.querySelectorAll(".side-select");
 
-            // --- IGL/Coach output ---
-            const plainIGL = `IGL: ${a.igl}; Coach: ${a.coach} for ${a.tag} | IGL: ${b.igl}; Coach: ${b.coach} for ${b.tag}`;
+            // --- IGL/Coach output (unchanged) ---
+            const plainIGL = `IGL: ${a.igl}; Coach: ${a.coach} for ${aTag} | IGL: ${b.igl}; Coach: ${b.coach} for ${bTag}`;
 
             outputText1.innerHTML =
                 `<span>IGL: ${a.igl}; Coach: ${a.coach} for </span>` +
-                `<span class="team-a">${a.tag}</span>` +
+                `<span class="team-a">${aTag}</span>` +
                 `<span class="separator"> | </span>` +
                 `<span>IGL: ${b.igl}; Coach: ${b.coach} for </span>` +
-                `<span class="team-b">${b.tag}</span>`;
+                `<span class="team-b">${bTag}</span>`;
 
             outputCard1.dataset.plain = plainIGL;
             outputCard1.classList.add("visible");
 
-            // --- Map veto output ---
+            // --- Map veto output: !editcom format ---
+            // Per map: <Map> [ <Picker> . <SideTeam> picks <Attack|Defense>]
+            // Picks separated by " ; ", wrapped in !editcom command.
             const mapParts = [];
             const mapPartsHTML = [];
 
             slots.forEach((slot, i) => {
-                const mapName = mapSelects[i].value.toUpperCase();
-                const side = sideSelects[i].value;
+                const mapName = capitalizeMap(mapSelects[i].value);
+                const sideFull = sideToFull(sideSelects[i].value);
 
-                let pickInfo, pickInfoHTML;
+                let pickerToken, pickerTokenHTML, sideTeam, sideTeamHTML;
 
                 if (slot.type === "A_PICK") {
-                    // Team A picked, side select = opponent (B) side
-                    pickInfo = `${a.tag} pick, ${b.tag} ${side}`;
-                    pickInfoHTML = `<span class="team-a">${a.tag}</span> pick, <span class="team-b">${b.tag}</span> ${side}`;
+                    // A picked the map → B picks side. Token: " TH" (leading space matches spec).
+                    pickerToken = ` ${aTag}`;
+                    pickerTokenHTML = ` <span class="team-a">${aTag}</span>`;
+                    sideTeam = bTag;
+                    sideTeamHTML = `<span class="team-b">${bTag}</span>`;
                 } else if (slot.type === "B_PICK") {
-                    // Team B picked, side select = opponent (A) side
-                    pickInfo = `${b.tag} pick, ${a.tag} ${side}`;
-                    pickInfoHTML = `<span class="team-b">${b.tag}</span> pick, <span class="team-a">${a.tag}</span> ${side}`;
+                    pickerToken = ` ${bTag}`;
+                    pickerTokenHTML = ` <span class="team-b">${bTag}</span>`;
+                    sideTeam = aTag;
+                    sideTeamHTML = `<span class="team-a">${aTag}</span>`;
                 } else {
-                    // Decider, side select = Team A's side
-                    pickInfo = `DECIDER, ${a.tag} ${side}`;
-                    pickInfoHTML = `DECIDER, <span class="team-a">${a.tag}</span> ${side}`;
+                    // Decider — spec uses "[Decider" with no leading space.
+                    pickerToken = "Decider";
+                    pickerTokenHTML = "Decider";
+                    sideTeam = aTag;
+                    sideTeamHTML = `<span class="team-a">${aTag}</span>`;
                 }
 
-                mapParts.push(`${mapName} (${pickInfo})`);
-                mapPartsHTML.push(`<span class="map-name">${mapName}</span> (${pickInfoHTML})`);
+                mapParts.push(`${mapName} [${pickerToken} . ${sideTeam} picks ${sideFull}]`);
+                mapPartsHTML.push(
+                    `<span class="map-name">${mapName}</span> [${pickerTokenHTML} . ${sideTeamHTML} picks ${sideFull}]`
+                );
             });
 
-            const plainMaps = `${mapParts.join(" | ")}`;
-            const htmlMaps = `${mapPartsHTML.join('<span class="separator"> | </span>')}`;
+            const plainMaps =
+                `!editcom !maps -a=!echo $(touser) | ${mapParts.join(" ; ")} | !score`;
+            const htmlMaps =
+                `!editcom !maps -a=!echo $(touser) <span class="separator">|</span> ` +
+                `${mapPartsHTML.join(" ; ")} <span class="separator">|</span> !score`;
 
             outputText2.innerHTML = htmlMaps;
             outputCard2.dataset.plain = plainMaps;
