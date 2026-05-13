@@ -623,13 +623,34 @@
         ];
         const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode"];
 
-        const TALENT = ["Achilios", "Bren", "Shyo", "Egg", "Elevated", "Chobra", "Mimi"];
+        const TALENT = ["Achilios", "Bren", "Shyo", "egg", "Elevated", "Chobra", "Mimi"];
 
         const CASTERS = {
-            amer: ["Vansilli", "Riv", "Wyatt", "Uber", "Egg", "Bren", "Doug", "Goldenboy", "Dash"],
+            amer: ["Vansilli", "Riv", "Wyatt", "Uber", "egg", "Bren", "Doug", "Goldenboy", "Dash"],
             emea: ["Mitchman", "Tombizz", "Hypoc", "Pansy", "Hugo"],
             pac:  ["Paperthin", "Achilios", "pilski", "Quack", "Komodo"],
         };
+
+        // Display-time overrides (applied at output, not stored in data).
+        // Keeps upstream auto-sync compatible — local teams array can still
+        // hold "Boaster"/"Boo" while output renders "boaster"/"boo".
+        const NAME_OVERRIDES = {
+            "Sideshow": "egg",
+            "Egg":      "egg",
+            "Boaster":  "boaster",
+            "Boo":      "boo",
+        };
+        function overrideName(n) {
+            return Object.prototype.hasOwnProperty.call(NAME_OVERRIDES, n) ? NAME_OVERRIDES[n] : n;
+        }
+        // Combining rule: if both Bren and egg appear in the same output
+        // (after overrides), merge into "Brenshow".
+        function combineNames(names) {
+            const hasBren = names.includes("Bren");
+            const hasEgg  = names.includes("egg");
+            if (!hasBren || !hasEgg) return names;
+            return names.filter(n => n !== "Bren" && n !== "egg").concat(["Brenshow"]);
+        }
 
         const MAX_GAMES = 4;
 
@@ -899,7 +920,11 @@
         // ---- OUTPUT BUILDERS ----
         function buildIglsLine(game) {
             if (!game.a || !game.b) return null;
-            return `IGL: ${game.a.igl}; Coach: ${game.a.coach} for ${game.a.tag} | IGL: ${game.b.igl}; Coach: ${game.b.coach} for ${game.b.tag}`;
+            const aIgl   = overrideName(game.a.igl);
+            const aCoach = overrideName(game.a.coach);
+            const bIgl   = overrideName(game.b.igl);
+            const bCoach = overrideName(game.b.coach);
+            return `IGL: ${aIgl}; Coach: ${aCoach} for ${game.a.tag} | IGL: ${bIgl}; Coach: ${bCoach} for ${game.b.tag}`;
         }
 
         function buildMapsForGame(game) {
@@ -997,23 +1022,17 @@
             return !!gameCardsContainer.querySelector(".score-inputs.state-invalid");
         }
 
-        function buildCallLine() {
-            const checked = [...document.querySelectorAll(".talent-check:checked")].map(c => c.value);
-            const other = document.getElementById("talentOther").value.trim();
-            const all = [...checked];
-            if (other) all.push(other);
-            if (all.length === 0) return "TheVoices";
-            return all.join(" ");
+        function buildNameList(checkedSelector, otherInputId, fallback) {
+            const checked = [...document.querySelectorAll(checkedSelector)].map(c => c.value);
+            const otherRaw = document.getElementById(otherInputId).value.trim();
+            const others = otherRaw ? otherRaw.split(/\s+/) : [];
+            const all = [...checked, ...others].map(overrideName);
+            if (all.length === 0) return fallback;
+            return combineNames(all).join(" ");
         }
 
-        function buildCastersLine() {
-            const checked = [...document.querySelectorAll(".caster-check:checked")].map(c => c.value);
-            const other = document.getElementById("castersOther").value.trim();
-            const all = [...checked];
-            if (other) all.push(other);
-            if (all.length === 0) return "tbd";
-            return all.join(" ");
-        }
+        function buildCallLine()    { return buildNameList(".talent-check:checked", "talentOther",  "TheVoices"); }
+        function buildCastersLine() { return buildNameList(".caster-check:checked",  "castersOther", "tbd"); }
 
         // ---- GENERATE ----
         const errorMsg = document.getElementById("errorMsg");
