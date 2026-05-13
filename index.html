@@ -26,6 +26,8 @@
             --accent-2: #00c8ff;
             --accent-2-glow: rgba(0, 200, 255, 0.3);
             --gold: #f0c040;
+            --danger: #ff4655;
+            --ok: #4ade80;
             --text: #eaeaf0;
             --text-dim: #9496b0;
             --radius: 12px;
@@ -59,7 +61,7 @@
         .subtitle {
             color: var(--text-dim);
             font-size: 0.9rem;
-            margin-bottom: 32px;
+            margin-bottom: 28px;
             text-align: center;
         }
 
@@ -67,16 +69,14 @@
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 28px;
+            padding: 26px;
             width: 100%;
-            max-width: 760px;
+            max-width: 780px;
             margin-bottom: 20px;
             transition: box-shadow 0.3s;
         }
 
-        .card:hover {
-            box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3);
-        }
+        .card:hover { box-shadow: 0 4px 30px rgba(0, 0, 0, 0.3); }
 
         .card-title {
             font-size: 0.75rem;
@@ -87,13 +87,37 @@
             margin-bottom: 18px;
         }
 
-        .game-card .card-title {
-            color: var(--accent);
-            font-size: 0.85rem;
+        .game-card .card-title { font-size: 0.95rem; }
+        .game-card[data-game-idx="0"] .card-title { color: var(--accent); }
+        .game-card[data-game-idx="1"] .card-title { color: var(--accent-2); }
+        .game-card[data-game-idx="2"] .card-title { color: var(--gold); }
+        .game-card[data-game-idx="3"] .card-title { color: #c084fc; }
+
+        .top-bar {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 20px;
+            max-width: 780px;
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: var(--radius);
+            padding: 14px 20px;
         }
 
-        .game-card[data-game-idx="1"] .card-title {
-            color: var(--accent-2);
+        .top-bar label {
+            font-size: 0.8rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            color: var(--text-dim);
+        }
+
+        .top-bar select {
+            width: auto;
+            min-width: 110px;
+            cursor: pointer;
         }
 
         .tbd-row {
@@ -132,13 +156,8 @@
             margin-bottom: 8px;
         }
 
-        .team-col:first-child label {
-            color: var(--accent);
-        }
-
-        .team-col:last-child label {
-            color: var(--accent-2);
-        }
+        .team-col:first-child label { color: var(--accent); }
+        .team-col:last-child label { color: var(--accent-2); }
 
         select, input[type="text"], input[type="number"] {
             width: 100%;
@@ -150,10 +169,11 @@
             color: var(--text);
             border: 1px solid var(--border);
             border-radius: 8px;
-            cursor: pointer;
             appearance: none;
             transition: border-color 0.2s, box-shadow 0.2s;
         }
+
+        select { cursor: pointer; }
 
         select {
             background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='12' height='7'%3E%3Cpath d='M1 1l5 5 5-5' stroke='%239496b0' stroke-width='1.5' fill='none'/%3E%3C/svg%3E");
@@ -172,17 +192,8 @@
             box-shadow: 0 0 0 3px var(--accent-2-glow);
         }
 
-        optgroup {
-            font-weight: 700;
-            color: var(--text-dim);
-        }
-
-        option {
-            font-weight: 500;
-            color: var(--text);
-            background: var(--surface-bright);
-            padding: 6px;
-        }
+        optgroup { font-weight: 700; color: var(--text-dim); }
+        option { font-weight: 500; color: var(--text); background: var(--surface-bright); padding: 6px; }
 
         .vs {
             font-weight: 800;
@@ -195,7 +206,6 @@
 
         .bo-toggle {
             display: flex;
-            gap: 0;
             margin-bottom: 18px;
             border-radius: 8px;
             overflow: hidden;
@@ -220,18 +230,15 @@
             color: #fff;
         }
 
-        .game-card[data-game-idx="1"] .bo-toggle button.active {
-            background: var(--accent-2);
-        }
+        .game-card[data-game-idx="1"] .bo-toggle button.active { background: var(--accent-2); }
+        .game-card[data-game-idx="2"] .bo-toggle button.active { background: var(--gold); color: #1a1a1a; }
+        .game-card[data-game-idx="3"] .bo-toggle button.active { background: #c084fc; color: #1a1a1a; }
 
-        .bo-toggle button:hover:not(.active) {
-            background: #2a2d44;
-            color: var(--text);
-        }
+        .bo-toggle button:hover:not(.active) { background: #2a2d44; color: var(--text); }
 
         .map-row {
             display: grid;
-            grid-template-columns: minmax(120px, auto) 1.6fr 1fr 1.4fr;
+            grid-template-columns: minmax(130px, auto) 1.6fr 1fr 1.4fr;
             gap: 10px;
             align-items: end;
             margin-bottom: 10px;
@@ -259,7 +266,7 @@
         }
 
         .map-row .map-num {
-            font-size: 0.7rem;
+            font-size: 0.72rem;
             font-weight: 700;
             text-transform: uppercase;
             letter-spacing: 1px;
@@ -268,9 +275,7 @@
             white-space: nowrap;
         }
 
-        .map-row .map-num.decider {
-            color: var(--gold);
-        }
+        .map-row .map-num.decider { color: var(--gold); }
 
         .score-cell .score-inputs {
             display: grid;
@@ -292,17 +297,29 @@
         }
         .score-inputs input { -moz-appearance: textfield; }
 
-        .score-sep {
+        .score-inputs.state-invalid input {
+            border-color: var(--danger);
+            box-shadow: 0 0 0 2px rgba(255, 70, 85, 0.25);
+        }
+        .score-inputs.state-won-a input.score-a,
+        .score-inputs.state-won-b input.score-b {
+            border-color: var(--ok);
+            color: var(--ok);
+        }
+
+        .score-sep { color: var(--text-dim); font-weight: 700; }
+
+        .score-status {
+            font-size: 0.7rem;
             color: var(--text-dim);
-            font-weight: 700;
+            margin-top: 4px;
+            min-height: 14px;
         }
+        .score-status.error { color: var(--danger); font-weight: 600; }
+        .score-status.win { color: var(--ok); font-weight: 600; }
 
-        .game-card.is-tbd .score-cell {
-            opacity: 0.3;
-            pointer-events: none;
-        }
+        .game-card.is-tbd .score-cell { opacity: 0.3; pointer-events: none; }
 
-        /* ---- Talent / Casters ---- */
         .talent-grid {
             display: grid;
             grid-template-columns: repeat(auto-fill, minmax(140px, 1fr));
@@ -324,9 +341,7 @@
             transition: border-color 0.2s, background 0.2s;
         }
 
-        .talent-check-label:hover {
-            border-color: var(--text-dim);
-        }
+        .talent-check-label:hover { border-color: var(--text-dim); }
 
         .talent-check-label input[type="checkbox"] {
             width: 14px;
@@ -340,10 +355,7 @@
             font-weight: 700;
         }
 
-        .other-input-row {
-            margin-top: 4px;
-        }
-
+        .other-input-row { margin-top: 4px; }
         .other-input-row label {
             display: block;
             font-size: 0.7rem;
@@ -354,10 +366,7 @@
             margin-bottom: 6px;
         }
 
-        .casters-region {
-            margin-bottom: 18px;
-        }
-
+        .casters-region { margin-bottom: 16px; }
         .region-title {
             font-size: 0.75rem;
             font-weight: 700;
@@ -373,11 +382,10 @@
             margin-top: 6px;
         }
 
-        /* ---- Generate + outputs ---- */
         .generate-btn {
             display: block;
             width: 100%;
-            max-width: 760px;
+            max-width: 780px;
             padding: 14px;
             font-family: 'Inter', sans-serif;
             font-size: 1rem;
@@ -406,7 +414,7 @@
             border-radius: var(--radius);
             padding: 22px 26px;
             width: 100%;
-            max-width: 760px;
+            max-width: 780px;
             position: relative;
             opacity: 0;
             transform: translateY(8px);
@@ -414,10 +422,7 @@
             margin-bottom: 12px;
         }
 
-        .output-card.visible {
-            opacity: 1;
-            transform: translateY(0);
-        }
+        .output-card.visible { opacity: 1; transform: translateY(0); }
 
         .output-label {
             font-size: 0.7rem;
@@ -433,7 +438,6 @@
             font-weight: 500;
             line-height: 1.6;
             word-break: break-word;
-            font-family: 'Inter', monospace;
         }
 
         .copy-btn {
@@ -454,40 +458,25 @@
             transition: color 0.2s, border-color 0.2s;
         }
 
-        .copy-btn:hover {
-            color: var(--text);
-            border-color: var(--text-dim);
-        }
-
-        .copy-btn.copied {
-            color: #4ade80;
-            border-color: #4ade80;
-        }
+        .copy-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .copy-btn.copied { color: var(--ok); border-color: var(--ok); }
 
         .error-msg {
-            color: var(--accent);
+            color: var(--danger);
             font-size: 0.85rem;
             text-align: center;
             margin-bottom: 14px;
             opacity: 0;
             transition: opacity 0.3s;
         }
-
-        .error-msg.show {
-            opacity: 1;
-        }
+        .error-msg.show { opacity: 1; }
 
         @media (max-width: 600px) {
-            .matchup-grid {
-                grid-template-columns: 1fr;
-                gap: 10px;
-            }
+            .matchup-grid { grid-template-columns: 1fr; gap: 10px; }
             .vs { padding: 0; }
             h1 { font-size: 1.5rem; }
             .card { padding: 20px; }
-            .map-row {
-                grid-template-columns: 1fr 1fr;
-            }
+            .map-row { grid-template-columns: 1fr 1fr; }
         }
     </style>
 </head>
@@ -495,65 +484,19 @@
 <body>
 
     <h1>VCT Day Builder</h1>
-    <p class="subtitle">Two games, talent, casters — generate all <code>!editcom</code> strings</p>
+    <p class="subtitle">Multi-game day, talent, casters — generate all <code>!editcom</code> strings</p>
 
-    <!-- GAME 1 -->
-    <div class="card game-card" data-game-idx="0">
-        <div class="card-title">Game 1</div>
-        <label class="tbd-row">
-            <input type="checkbox" class="tbd-toggle" />
-            <span>Mark this game as TBD (not played yet)</span>
-        </label>
-        <div class="matchup-grid">
-            <div class="team-col">
-                <label>Team A</label>
-                <select class="team-a-select">
-                    <option value="" disabled selected>Pick a team…</option>
-                </select>
-            </div>
-            <div class="vs">VS</div>
-            <div class="team-col">
-                <label>Team B</label>
-                <select class="team-b-select">
-                    <option value="" disabled selected>Pick a team…</option>
-                </select>
-            </div>
-        </div>
-        <div class="bo-toggle">
-            <button class="bo3-btn active" type="button">Best of 3</button>
-            <button class="bo5-btn" type="button">Best of 5</button>
-        </div>
-        <div class="map-rows"></div>
+    <div class="top-bar">
+        <label for="gamesCount">Games today</label>
+        <select id="gamesCount">
+            <option value="1">1</option>
+            <option value="2" selected>2</option>
+            <option value="3">3</option>
+            <option value="4">4</option>
+        </select>
     </div>
 
-    <!-- GAME 2 -->
-    <div class="card game-card" data-game-idx="1">
-        <div class="card-title">Game 2</div>
-        <label class="tbd-row">
-            <input type="checkbox" class="tbd-toggle" checked />
-            <span>Mark this game as TBD (not played yet)</span>
-        </label>
-        <div class="matchup-grid">
-            <div class="team-col">
-                <label>Team A</label>
-                <select class="team-a-select">
-                    <option value="" disabled selected>Pick a team…</option>
-                </select>
-            </div>
-            <div class="vs">VS</div>
-            <div class="team-col">
-                <label>Team B</label>
-                <select class="team-b-select">
-                    <option value="" disabled selected>Pick a team…</option>
-                </select>
-            </div>
-        </div>
-        <div class="bo-toggle">
-            <button class="bo3-btn active" type="button">Best of 3</button>
-            <button class="bo5-btn" type="button">Best of 5</button>
-        </div>
-        <div class="map-rows"></div>
-    </div>
+    <div id="gameCardsContainer"></div>
 
     <!-- TALENT (!call) -->
     <div class="card">
@@ -587,22 +530,21 @@
         </div>
     </div>
 
-    <p class="error-msg" id="errorMsg">Both teams in a played game must be different.</p>
+    <p class="error-msg" id="errorMsg">Fix invalid map scores (red) before generating.</p>
     <button class="generate-btn" id="generateBtn">Generate All Outputs</button>
 
-    <!-- OUTPUTS -->
     <div class="output-card" id="out-igls">
         <div class="output-label">!igls</div>
         <div class="output-text"></div>
         <button class="copy-btn">Copy</button>
     </div>
     <div class="output-card" id="out-maps">
-        <div class="output-label">!maps</div>
+        <div class="output-label">!maps (current game only)</div>
         <div class="output-text"></div>
         <button class="copy-btn">Copy</button>
     </div>
     <div class="output-card" id="out-score">
-        <div class="output-label">!score</div>
+        <div class="output-label">!score (all games)</div>
         <div class="output-text"></div>
         <button class="copy-btn">Copy</button>
     </div>
@@ -618,9 +560,8 @@
     </div>
 
     <script>
-        // ---- TEAM DATA ----
+        // ---- DATA ----
         const teams = [
-            // VCT AMERICAS
             { region: "VCT Americas", name: "NRG", igl: "Ethan", coach: "bonkar", tag: "NRG" },
             { region: "VCT Americas", name: "G2 Esports", igl: "Valyn", coach: "JoshRT", tag: "G2" },
             { region: "VCT Americas", name: "MIBR", igl: "Verno", coach: "fRoD", tag: "MIBR" },
@@ -633,7 +574,6 @@
             { region: "VCT Americas", name: "LOUD", igl: "erde", coach: "Romanilly", tag: "LOUD" },
             { region: "VCT Americas", name: "FURIA", igl: "artzin", coach: "shaW", tag: "Furia" },
             { region: "VCT Americas", name: "Envy", igl: "P0PPIN", coach: "Stunner", tag: "ENVY" },
-            // VCT EMEA
             { region: "VCT EMEA", name: "Fnatic", igl: "Boaster", coach: "Milan", tag: "FNC" },
             { region: "VCT EMEA", name: "Team Heretics", igl: "Boo", coach: "neilzinho", tag: "TH" },
             { region: "VCT EMEA", name: "Team Liquid", igl: "nAts", coach: "LohaN", tag: "TL" },
@@ -646,7 +586,6 @@
             { region: "VCT EMEA", name: "Gentle Mates", igl: "starxo", coach: "KUNDIKUNDI", tag: "GM8" },
             { region: "VCT EMEA", name: "PCIFIC Esports", igl: "qpert", coach: "thinkii", tag: "PCF" },
             { region: "VCT EMEA", name: "Eternal Fire", igl: "nekky", coach: "adr0nfire", tag: "EF" },
-            // VCT PACIFIC
             { region: "VCT Pacific", name: "Paper Rex", igl: "f0rsakeN", coach: "alecks", tag: "PRX" },
             { region: "VCT Pacific", name: "DRX", igl: "MaKo", coach: "termi", tag: "DRX" },
             { region: "VCT Pacific", name: "GEN.G Esports", igl: "Lakia", coach: "solo", tag: "GenG" },
@@ -659,7 +598,6 @@
             { region: "VCT Pacific", name: "Global Esports", igl: "xavi8k", coach: "FrosT", tag: "GE" },
             { region: "VCT Pacific", name: "Full Sense", igl: "crws", coach: "THEELOVEFAMILY", tag: "FS" },
             { region: "VCT Pacific", name: "Varrel", igl: "oonzmlp", coach: "TK9", tag: "VL" },
-            // VCT CHINA
             { region: "VCT China", name: "Xi Lai Gaming", igl: "WsLeo", coach: "hvoya", tag: "XLG" },
             { region: "VCT China", name: "Bilibili Gaming", igl: "nephh", coach: "Muggle", tag: "BLG" },
             { region: "VCT China", name: "Dragon Ranger Gaming", igl: "Flex1n", coach: "NaThanD", tag: "DRG" },
@@ -675,53 +613,23 @@
         ];
         const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode"];
 
-        const TALENT = ["Achilios", "Bren", "Shyo", "Egg", "Elevated", "Chobra"];
+        const TALENT = ["Achilios", "Bren", "Shyo", "Egg", "Elevated", "Chobra", "Mimi"];
 
-        // Pre-seeded; user will correct
+        // Casters only (no desk hosts). Names trimmed; user will iterate.
         const CASTERS = {
-            amer: ["aEvilcat", "Ballatw", "Bren", "EsportsDoug", "Riv", "Sideshow", "Vansilli", "Dash", "Smix", "Goldenboy", "Wyatt River", "Sean Gares", "athxna", "bENITA", "meL"],
-            emea: ["hypoc", "Pansy", "Yinsu", "Sliggy", "Tombizz", "ardiis", "Sideshows", "Hugo Byron", "FoxA", "Mauisnake"],
-            pac: ["Achilios", "Paperthin", "heyimquack", "BigTime", "Elfishguy", "pilski", "ChubbyNinja", "Mikafabs"],
+            amer: ["Bren", "Doug", "Goldenboy", "Wyatt", "Dash", "Egg", "Vansilli", "Sean Gares"],
+            emea: ["hypoc", "Pansy", "Yinsu", "Sliggy", "Tombizz", "ardiis", "Hugo Byron"],
+            pac:  ["Achilios", "Paperthin", "Quack", "BigTime", "Elfishguy", "pilski"],
         };
 
-        // ---- POPULATE TEAM SELECTS ----
-        function populateTeamSelect(selectEl) {
-            const regions = [...new Set(teams.map(t => t.region))].sort((a, b) => a.localeCompare(b));
-            regions.forEach(region => {
-                const group = document.createElement("optgroup");
-                group.label = region;
-                teams
-                    .filter(t => t.region === region)
-                    .sort((a, b) => a.name.localeCompare(b.name))
-                    .forEach(t => {
-                        const opt = document.createElement("option");
-                        opt.value = JSON.stringify(t);
-                        opt.textContent = t.name;
-                        group.appendChild(opt);
-                    });
-                selectEl.appendChild(group);
-            });
+        const MAX_GAMES = 4;
+
+        // ---- HELPERS ----
+        function capitalizeMap(name) {
+            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
         }
+        function sideToFull(side) { return side === "atk" ? "Attack" : "Defense"; }
 
-        document.querySelectorAll(".team-a-select, .team-b-select").forEach(populateTeamSelect);
-
-        // ---- POPULATE TALENT CHECKBOXES ----
-        function buildCheckboxGrid(containerEl, options, classPrefix) {
-            options.forEach(name => {
-                const label = document.createElement("label");
-                label.className = "talent-check-label";
-                label.innerHTML = `<input type="checkbox" class="${classPrefix}-check" value="${name}" /><span>${name}</span>`;
-                containerEl.appendChild(label);
-            });
-        }
-
-        buildCheckboxGrid(document.getElementById("talentGrid"), TALENT, "talent");
-        document.querySelectorAll("[data-caster-region]").forEach(el => {
-            const region = el.dataset.casterRegion;
-            buildCheckboxGrid(el, CASTERS[region], "caster");
-        });
-
-        // ---- MAP SLOTS / ROWS PER GAME ----
         function getMapSlots(bestOf) {
             if (bestOf === 3) {
                 return [
@@ -739,25 +647,121 @@
             ];
         }
 
-        function buildMapRows(gameCard) {
+        // Determine whether a (a, b) score pair represents a valid in-progress
+        // state, an invalid score, or a finished map (and who won).
+        // Valorant rules:
+        //   - First to 13 with ≥2 lead wins
+        //   - If 12-12, go to OT; from there, score must stay within 2 of opponent;
+        //     win when 2 ahead
+        function scoreState(aRaw, bRaw) {
+            const aEmpty = aRaw === "" || aRaw == null;
+            const bEmpty = bRaw === "" || bRaw == null;
+            if (aEmpty && bEmpty) return "empty";
+            if (aEmpty || bEmpty) return "partial"; // one entered
+            const a = parseInt(aRaw, 10);
+            const b = parseInt(bRaw, 10);
+            if (isNaN(a) || isNaN(b) || a < 0 || b < 0 || a > 40 || b > 40) return "invalid";
+            const mx = Math.max(a, b);
+            const mn = Math.min(a, b);
+            if (mx <= 12) return "in-progress";
+            if (mx === 13) {
+                if (mn <= 11) return a > b ? "won-a" : "won-b";
+                if (mn === 12 || mn === 13) return "in-progress"; // OT mid-state
+                return "invalid";
+            }
+            // mx >= 14: must be in OT, so min must be >= 12 and diff must be ≤ 2
+            if (mn < 12) return "invalid";
+            const diff = mx - mn;
+            if (diff > 2) return "invalid";
+            if (diff === 2) return a > b ? "won-a" : "won-b";
+            return "in-progress";
+        }
+
+        // ---- POPULATE TEAM SELECTS / CHECKBOX GRIDS ----
+        function populateTeamSelect(selectEl) {
+            selectEl.innerHTML = '<option value="" disabled selected>Pick a team…</option>';
+            const regions = [...new Set(teams.map(t => t.region))].sort((a, b) => a.localeCompare(b));
+            regions.forEach(region => {
+                const group = document.createElement("optgroup");
+                group.label = region;
+                teams.filter(t => t.region === region)
+                    .sort((a, b) => a.name.localeCompare(b.name))
+                    .forEach(t => {
+                        const opt = document.createElement("option");
+                        opt.value = JSON.stringify(t);
+                        opt.textContent = t.name;
+                        group.appendChild(opt);
+                    });
+                selectEl.appendChild(group);
+            });
+        }
+
+        function buildCheckboxGrid(containerEl, options, classPrefix) {
+            containerEl.innerHTML = "";
+            options.forEach(name => {
+                const label = document.createElement("label");
+                label.className = "talent-check-label";
+                label.innerHTML = `<input type="checkbox" class="${classPrefix}-check" value="${name}" /><span>${name}</span>`;
+                containerEl.appendChild(label);
+            });
+        }
+
+        buildCheckboxGrid(document.getElementById("talentGrid"), TALENT, "talent");
+        document.querySelectorAll("[data-caster-region]").forEach(el => {
+            const region = el.dataset.casterRegion;
+            buildCheckboxGrid(el, CASTERS[region], "caster");
+        });
+
+        // ---- BUILD GAME CARDS ----
+        const gameCardsContainer = document.getElementById("gameCardsContainer");
+
+        function buildGameCardEl(idx) {
+            const card = document.createElement("div");
+            card.className = "card game-card";
+            card.dataset.gameIdx = String(idx);
+            // Game 2+ default to TBD
+            const tbdDefault = idx >= 1 ? " checked" : "";
+            card.innerHTML = `
+                <div class="card-title">Game ${idx + 1}</div>
+                <label class="tbd-row">
+                    <input type="checkbox" class="tbd-toggle"${tbdDefault} />
+                    <span>Mark this game as TBD (not played yet)</span>
+                </label>
+                <div class="matchup-grid">
+                    <div class="team-col">
+                        <label>Team A</label>
+                        <select class="team-a-select"></select>
+                    </div>
+                    <div class="vs">VS</div>
+                    <div class="team-col">
+                        <label>Team B</label>
+                        <select class="team-b-select"></select>
+                    </div>
+                </div>
+                <div class="bo-toggle">
+                    <button class="bo3-btn active" type="button">Best of 3</button>
+                    <button class="bo5-btn" type="button">Best of 5</button>
+                </div>
+                <div class="map-rows"></div>
+            `;
+            return card;
+        }
+
+        function buildMapRowsFor(gameCard) {
             const bestOf = gameCard.querySelector(".bo3-btn").classList.contains("active") ? 3 : 5;
             const slots = getMapSlots(bestOf);
             const mapRowsEl = gameCard.querySelector(".map-rows");
             mapRowsEl.innerHTML = "";
-
             slots.forEach((slot, i) => {
                 const row = document.createElement("div");
                 row.className = "map-row";
                 row.style.animationDelay = `${i * 0.05}s`;
-
                 let typeLabel, typeClass = "";
                 if (slot.type === "A_PICK") typeLabel = "Team A pick";
                 else if (slot.type === "B_PICK") typeLabel = "Team B pick";
                 else { typeLabel = "Decider"; typeClass = "decider"; }
-
                 const mapOpts = MAPS.map(m => `<option value="${m}">${m}</option>`).join("");
                 const sideLabel = slot.type === "DECIDER" ? "Side (Team A)" : "Opponent side";
-
                 row.innerHTML = `
                     <div class="map-num ${typeClass}">${slot.label} · ${typeLabel}</div>
                     <div>
@@ -777,18 +781,52 @@
                     <div class="score-cell">
                         <label>Score (A - B)</label>
                         <div class="score-inputs">
-                            <input type="number" class="score-a" min="0" max="30" placeholder="-" data-index="${i}" />
+                            <input type="number" class="score-a" min="0" max="40" placeholder="-" data-index="${i}" />
                             <span class="score-sep">–</span>
-                            <input type="number" class="score-b" min="0" max="30" placeholder="-" data-index="${i}" />
+                            <input type="number" class="score-b" min="0" max="40" placeholder="-" data-index="${i}" />
                         </div>
+                        <div class="score-status"></div>
                     </div>
                 `;
                 mapRowsEl.appendChild(row);
             });
+            // wire up score-input live validation
+            mapRowsEl.querySelectorAll(".map-row").forEach(row => {
+                const aIn = row.querySelector(".score-a");
+                const bIn = row.querySelector(".score-b");
+                const inputsEl = row.querySelector(".score-inputs");
+                const statusEl = row.querySelector(".score-status");
+                const update = () => {
+                    const s = scoreState(aIn.value, bIn.value);
+                    inputsEl.classList.remove("state-invalid", "state-won-a", "state-won-b", "state-in-progress");
+                    statusEl.classList.remove("error", "win");
+                    statusEl.textContent = "";
+                    if (s === "invalid") {
+                        inputsEl.classList.add("state-invalid");
+                        statusEl.classList.add("error");
+                        statusEl.textContent = "Impossible score";
+                    } else if (s === "won-a") {
+                        inputsEl.classList.add("state-won-a");
+                        statusEl.classList.add("win");
+                        statusEl.textContent = "Team A wins map";
+                    } else if (s === "won-b") {
+                        inputsEl.classList.add("state-won-b");
+                        statusEl.classList.add("win");
+                        statusEl.textContent = "Team B wins map";
+                    } else if (s === "in-progress") {
+                        statusEl.textContent = "In progress";
+                    } else if (s === "partial") {
+                        statusEl.textContent = "Enter both scores";
+                    }
+                };
+                aIn.addEventListener("input", update);
+                bIn.addEventListener("input", update);
+            });
         }
 
-        // Wire up each game card
-        document.querySelectorAll(".game-card").forEach(gameCard => {
+        function wireGameCard(gameCard) {
+            populateTeamSelect(gameCard.querySelector(".team-a-select"));
+            populateTeamSelect(gameCard.querySelector(".team-b-select"));
             const bo3Btn = gameCard.querySelector(".bo3-btn");
             const bo5Btn = gameCard.querySelector(".bo5-btn");
             const tbdToggle = gameCard.querySelector(".tbd-toggle");
@@ -796,31 +834,38 @@
             bo3Btn.addEventListener("click", () => {
                 bo3Btn.classList.add("active");
                 bo5Btn.classList.remove("active");
-                buildMapRows(gameCard);
+                buildMapRowsFor(gameCard);
             });
             bo5Btn.addEventListener("click", () => {
                 bo5Btn.classList.add("active");
                 bo3Btn.classList.remove("active");
-                buildMapRows(gameCard);
+                buildMapRowsFor(gameCard);
             });
-
             tbdToggle.addEventListener("change", () => {
                 gameCard.classList.toggle("is-tbd", tbdToggle.checked);
             });
-
-            // Initial state
             if (tbdToggle.checked) gameCard.classList.add("is-tbd");
-            buildMapRows(gameCard);
-        });
-
-        // ---- HELPERS ----
-        function capitalizeMap(name) {
-            return name.charAt(0).toUpperCase() + name.slice(1).toLowerCase();
-        }
-        function sideToFull(side) {
-            return side === "atk" ? "Attack" : "Defense";
+            buildMapRowsFor(gameCard);
         }
 
+        for (let i = 0; i < MAX_GAMES; i++) {
+            const card = buildGameCardEl(i);
+            gameCardsContainer.appendChild(card);
+            wireGameCard(card);
+        }
+
+        // ---- GAMES COUNT TOGGLE ----
+        const gamesCountSel = document.getElementById("gamesCount");
+        function applyGamesCount() {
+            const n = parseInt(gamesCountSel.value, 10);
+            gameCardsContainer.querySelectorAll(".game-card").forEach((c, i) => {
+                c.style.display = i < n ? "" : "none";
+            });
+        }
+        gamesCountSel.addEventListener("change", applyGamesCount);
+        applyGamesCount();
+
+        // ---- READ A GAME ----
         function gameInfo(gameCard) {
             const aRaw = gameCard.querySelector(".team-a-select").value;
             const bRaw = gameCard.querySelector(".team-b-select").value;
@@ -835,6 +880,13 @@
             };
         }
 
+        function visibleGames() {
+            const n = parseInt(gamesCountSel.value, 10);
+            return [...gameCardsContainer.querySelectorAll(".game-card")]
+                .slice(0, n)
+                .map(gameInfo);
+        }
+
         // ---- OUTPUT BUILDERS ----
         function buildIglsLine(game) {
             if (!game.a || !game.b) return null;
@@ -842,7 +894,6 @@
         }
 
         function buildMapsForGame(game) {
-            // Returns array of map-strings or null if not enough info
             if (!game.a || !game.b) return null;
             const slots = getMapSlots(game.bestOf);
             const mapSelects = game.gameCard.querySelectorAll(".map-select");
@@ -860,39 +911,81 @@
                 else { pickerToken = "Decider"; sideTeam = game.a.tag; }
                 out.push(`${mapName} [${pickerToken} . ${sideTeam} picks ${sideFull}]`);
             }
-            return out;
+            return out.length ? out : null;
         }
 
+        // Per the user's rule for !score formatting:
+        // - Match score (e.g. "1 - 2") only counts maps with a decisive winner.
+        // - Tbd count is calculated so total shown maps =
+        //     max(inputted_count, format_min, decisive_played + (target - max_wins))
+        //   capped at total slots in the format.
+        //   This produces: 0 inputted -> 2 tbds (BO3) / 3 tbds (BO5);
+        //   1 inputted -> 1 tbd; 1-1 in BO3 -> 1 tbd; 2-0 -> done; etc.
         function buildScoreForGame(game) {
-            // Returns "FNC 1 - 2 TH [13 - 10, 2 - 13, 13 - 15]" or "FNC - TH [tbd, tbd]"
             if (!game.a || !game.b) return null;
-            const minWins = game.bestOf === 3 ? 2 : 3;
+            const target = game.bestOf === 3 ? 2 : 3;
+            const formatMin = target;
+            const totalSlots = game.bestOf;
 
             if (game.isTBD) {
-                return `${game.a.tag} - ${game.b.tag} [${Array(minWins).fill("tbd").join(", ")}]`;
+                const tbds = Array(formatMin).fill("tbd").join(", ");
+                return `${game.a.tag} - ${game.b.tag} [${tbds}]`;
             }
 
             const aIns = game.gameCard.querySelectorAll(".score-a");
             const bIns = game.gameCard.querySelectorAll(".score-b");
-            let aWins = 0, bWins = 0;
-            const mapScores = [];
+
+            const mapEntries = []; // each: { display: string, won: 'a'|'b'|null }
+            let invalidCount = 0;
             for (let i = 0; i < aIns.length; i++) {
-                const av = aIns[i].value, bv = bIns[i].value;
-                if (av === "" || bv === "") { mapScores.push("tbd"); continue; }
+                const av = aIns[i].value;
+                const bv = bIns[i].value;
+                if (av === "" && bv === "") continue;
+                const s = scoreState(av, bv);
+                if (s === "invalid") { invalidCount++; continue; }
+                if (s === "partial") {
+                    mapEntries.push({ display: `${av || "?"} - ${bv || "?"}`, won: null });
+                    continue;
+                }
                 const an = parseInt(av, 10), bn = parseInt(bv, 10);
-                if (an > bn) aWins++; else if (bn > an) bWins++;
-                mapScores.push(`${an} - ${bn}`);
+                const won = s === "won-a" ? "a" : s === "won-b" ? "b" : null;
+                mapEntries.push({ display: `${an} - ${bn}`, won });
             }
 
-            // Trim trailing tbds for cleanliness
-            while (mapScores.length > 0 && mapScores[mapScores.length - 1] === "tbd") {
-                mapScores.pop();
+            const aWins = mapEntries.filter(m => m.won === "a").length;
+            const bWins = mapEntries.filter(m => m.won === "b").length;
+            const maxWins = Math.max(aWins, bWins);
+            const decisivePlayed = aWins + bWins;
+            const inputtedCount = mapEntries.length;
+
+            // shown_count formula
+            let shownCount = Math.max(
+                inputtedCount,
+                formatMin,
+                decisivePlayed + (target - maxWins)
+            );
+            shownCount = Math.min(shownCount, totalSlots);
+
+            // Build score-list
+            const parts = [];
+            for (let i = 0; i < shownCount; i++) {
+                if (i < mapEntries.length) parts.push(mapEntries[i].display);
+                else parts.push("tbd");
             }
 
-            if (mapScores.length === 0) {
-                return `${game.a.tag} - ${game.b.tag} [${Array(minWins).fill("tbd").join(", ")}]`;
+            // Only show match score (e.g. "1 - 2") if at least one decisive map.
+            // If nothing decisive yet, just "A - B [scores...]"
+            const matchSettled = maxWins >= target;
+            const leading = matchSettled || aWins + bWins > 0;
+
+            if (leading) {
+                return `${game.a.tag} ${aWins} - ${bWins} ${game.b.tag} [${parts.join(", ")}]`;
             }
-            return `${game.a.tag} ${aWins} - ${bWins} ${game.b.tag} [${mapScores.join(", ")}]`;
+            return `${game.a.tag} - ${game.b.tag} [${parts.join(", ")}]`;
+        }
+
+        function hasAnyInvalidScore() {
+            return !!gameCardsContainer.querySelector(".score-inputs.state-invalid");
         }
 
         function buildCallLine() {
@@ -924,52 +1017,36 @@
         }
 
         document.getElementById("generateBtn").addEventListener("click", () => {
-            const games = [...document.querySelectorAll(".game-card")].map(gameInfo);
+            // Block on invalid scores
+            const invalid = hasAnyInvalidScore();
+            errorMsg.classList.toggle("show", invalid);
+            if (invalid) return;
 
-            // Validation: each non-TBD game with both teams chosen must have distinct teams
-            let badGame = null;
-            for (const g of games) {
-                if (!g.isTBD && g.a && g.b && g.a.name === g.b.name) { badGame = g; break; }
-            }
-            errorMsg.classList.toggle("show", !!badGame);
-            if (badGame) return;
+            const games = visibleGames();
 
-            // --- !igls ---
+            // --- !igls (all games, both teams each) ---
             const iglLines = games.map(buildIglsLine).filter(Boolean);
-            if (iglLines.length === 0) {
-                setOutput("out-igls", "(pick teams in at least one game)");
-            } else {
-                setOutput("out-igls", `!editcom !igls -a=!echo $(touser) | ${iglLines.join(" | ")}`);
-            }
+            if (iglLines.length === 0) setOutput("out-igls", "(pick teams in at least one game)");
+            else setOutput("out-igls", `!editcom !igls -a=!echo $(touser) | ${iglLines.join(" | ")}`);
 
-            // --- !maps ---
-            const mapsParts = [];
-            for (const g of games) {
-                const arr = buildMapsForGame(g);
-                if (arr && arr.length) mapsParts.push(arr.join(" ; "));
+            // --- !maps: only the latest game that has any maps filled in ---
+            let mapsLine = null;
+            for (let i = games.length - 1; i >= 0; i--) {
+                const arr = buildMapsForGame(games[i]);
+                if (arr && arr.length) { mapsLine = arr.join(" ; "); break; }
             }
-            if (mapsParts.length === 0) {
-                setOutput("out-maps", "(pick teams + maps in at least one game)");
-            } else {
-                setOutput("out-maps", `!editcom !maps -a=!echo $(touser) | ${mapsParts.join(" ; ")} | !score`);
-            }
+            if (!mapsLine) setOutput("out-maps", "(no maps filled in any game)");
+            else setOutput("out-maps", `!editcom !maps -a=!echo $(touser) | ${mapsLine} | !score`);
 
-            // --- !score ---
+            // --- !score: all games joined with " ; " ---
             const scoreParts = games.map(buildScoreForGame).filter(Boolean);
-            if (scoreParts.length === 0) {
-                setOutput("out-score", "(pick teams in at least one game)");
-            } else {
-                setOutput("out-score", `!editcom !score -a=!echo $(touser) | ${scoreParts.join(" ; ")} | !maps`);
-            }
+            if (scoreParts.length === 0) setOutput("out-score", "(pick teams in at least one game)");
+            else setOutput("out-score", `!editcom !score -a=!echo $(touser) | ${scoreParts.join(" ; ")} | !maps`);
 
-            // --- !call ---
             setOutput("out-call", `!editcom !call -a=!echo $(touser) | ${buildCallLine()}`);
-
-            // --- !casters ---
             setOutput("out-casters", `!editcom !casters -a=!echo $(touser) | ${buildCastersLine()}`);
         });
 
-        // ---- COPY BUTTONS ----
         document.querySelectorAll(".output-card").forEach(card => {
             const btn = card.querySelector(".copy-btn");
             btn.addEventListener("click", () => {
