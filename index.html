@@ -805,10 +805,14 @@
             const mapSelects = document.querySelectorAll(".map-select");
             const sideSelects = document.querySelectorAll(".side-select");
 
-            // --- IGL/Coach output (unchanged) ---
-            const plainIGL = `IGL: ${a.igl}; Coach: ${a.coach} for ${aTag} | IGL: ${b.igl}; Coach: ${b.coach} for ${bTag}`;
+            // --- IGL/Coach output: !editcom format ---
+            const plainIGL =
+                `!editcom !igls -a=!echo $(touser) | ` +
+                `IGL: ${a.igl}; Coach: ${a.coach} for ${aTag} | ` +
+                `IGL: ${b.igl}; Coach: ${b.coach} for ${bTag}`;
 
             outputText1.innerHTML =
+                `!editcom !igls -a=!echo $(touser) <span class="separator">|</span> ` +
                 `<span>IGL: ${a.igl}; Coach: ${a.coach} for </span>` +
                 `<span class="team-a">${aTag}</span>` +
                 `<span class="separator"> | </span>` +
