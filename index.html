@@ -96,27 +96,29 @@
         .top-bar {
             display: flex;
             align-items: center;
-            gap: 14px;
+            justify-content: space-between;
+            gap: 16px;
             margin-bottom: 20px;
             max-width: 780px;
             width: 100%;
             background: var(--surface);
             border: 1px solid var(--border);
             border-radius: var(--radius);
-            padding: 14px 20px;
+            padding: 16px 26px;
         }
 
         .top-bar label {
-            font-size: 0.8rem;
-            font-weight: 600;
+            font-size: 0.75rem;
+            font-weight: 700;
             text-transform: uppercase;
-            letter-spacing: 1px;
+            letter-spacing: 1.8px;
             color: var(--text-dim);
+            margin: 0;
         }
 
         .top-bar select {
             width: auto;
-            min-width: 110px;
+            min-width: 90px;
             cursor: pointer;
         }
 
@@ -238,10 +240,11 @@
 
         .map-row {
             display: grid;
-            grid-template-columns: minmax(130px, auto) 1.6fr 1fr 1.4fr;
-            gap: 10px;
+            grid-template-columns: minmax(120px, auto) 1.5fr 0.9fr 1.5fr;
+            gap: 12px;
             align-items: end;
-            margin-bottom: 10px;
+            margin-bottom: 20px;
+            position: relative;
             animation: fadeSlideIn 0.3s ease forwards;
         }
 
@@ -277,6 +280,8 @@
 
         .map-row .map-num.decider { color: var(--gold); }
 
+        .score-cell { position: relative; }
+
         .score-cell .score-inputs {
             display: grid;
             grid-template-columns: 1fr auto 1fr;
@@ -310,10 +315,15 @@
         .score-sep { color: var(--text-dim); font-weight: 700; }
 
         .score-status {
+            position: absolute;
+            top: calc(100% + 2px);
+            left: 0;
+            right: 0;
             font-size: 0.7rem;
             color: var(--text-dim);
-            margin-top: 4px;
-            min-height: 14px;
+            text-align: right;
+            pointer-events: none;
+            white-space: nowrap;
         }
         .score-status.error { color: var(--danger); font-weight: 600; }
         .score-status.win { color: var(--ok); font-weight: 600; }
@@ -539,12 +549,12 @@
         <button class="copy-btn">Copy</button>
     </div>
     <div class="output-card" id="out-maps">
-        <div class="output-label">!maps (current game only)</div>
+        <div class="output-label">!maps</div>
         <div class="output-text"></div>
         <button class="copy-btn">Copy</button>
     </div>
     <div class="output-card" id="out-score">
-        <div class="output-label">!score (all games)</div>
+        <div class="output-label">!score</div>
         <div class="output-text"></div>
         <button class="copy-btn">Copy</button>
     </div>
@@ -615,11 +625,11 @@
 
         const TALENT = ["Achilios", "Bren", "Shyo", "Egg", "Elevated", "Chobra", "Mimi"];
 
-        // Casters only (no desk hosts). Names trimmed; user will iterate.
+        // Play-by-play casters only — no analysts, no desk. User will iterate.
         const CASTERS = {
-            amer: ["Bren", "Doug", "Goldenboy", "Wyatt", "Dash", "Egg", "Vansilli", "Sean Gares"],
-            emea: ["hypoc", "Pansy", "Yinsu", "Sliggy", "Tombizz", "ardiis", "Hugo Byron"],
-            pac:  ["Achilios", "Paperthin", "Quack", "BigTime", "Elfishguy", "pilski"],
+            amer: ["Bren", "Doug", "Goldenboy", "Wyatt", "Dash"],
+            emea: ["hypoc", "Pansy", "Hugo Byron", "Tombizz"],
+            pac:  ["Achilios", "Paperthin", "pilski"],
         };
 
         const MAX_GAMES = 4;
@@ -1016,29 +1026,47 @@
             card.classList.add("visible");
         }
 
+        // "Current game" = latest game with any maps filled. Fallback: first
+        // game with both teams selected. !maps and !igls use this same game.
+        function findCurrentGame(games) {
+            for (let i = games.length - 1; i >= 0; i--) {
+                const g = games[i];
+                if (!g.a || !g.b) continue;
+                const mapSelects = g.gameCard.querySelectorAll(".map-select");
+                const hasMaps = [...mapSelects].some(s => s.value);
+                if (hasMaps) return g;
+            }
+            for (const g of games) {
+                if (g.a && g.b) return g;
+            }
+            return null;
+        }
+
         document.getElementById("generateBtn").addEventListener("click", () => {
-            // Block on invalid scores
             const invalid = hasAnyInvalidScore();
             errorMsg.classList.toggle("show", invalid);
             if (invalid) return;
 
             const games = visibleGames();
+            const current = findCurrentGame(games);
 
-            // --- !igls (all games, both teams each) ---
-            const iglLines = games.map(buildIglsLine).filter(Boolean);
-            if (iglLines.length === 0) setOutput("out-igls", "(pick teams in at least one game)");
-            else setOutput("out-igls", `!editcom !igls -a=!echo $(touser) | ${iglLines.join(" | ")}`);
+            // --- !igls: only the "current" game (matches !maps) ---
+            if (!current) setOutput("out-igls", "(pick teams in at least one game)");
+            else setOutput("out-igls", `!editcom !igls -a=!echo $(touser) | ${buildIglsLine(current)}`);
 
-            // --- !maps: only the latest game that has any maps filled in ---
-            let mapsLine = null;
-            for (let i = games.length - 1; i >= 0; i--) {
-                const arr = buildMapsForGame(games[i]);
-                if (arr && arr.length) { mapsLine = arr.join(" ; "); break; }
+            // --- !maps: only the "current" game ---
+            if (!current) {
+                setOutput("out-maps", "(pick teams in at least one game)");
+            } else {
+                const arr = buildMapsForGame(current);
+                if (!arr || arr.length === 0) {
+                    setOutput("out-maps", "(no maps filled for current game)");
+                } else {
+                    setOutput("out-maps", `!editcom !maps -a=!echo $(touser) | ${arr.join(" ; ")} | !score`);
+                }
             }
-            if (!mapsLine) setOutput("out-maps", "(no maps filled in any game)");
-            else setOutput("out-maps", `!editcom !maps -a=!echo $(touser) | ${mapsLine} | !score`);
 
-            // --- !score: all games joined with " ; " ---
+            // --- !score: ALL games joined with " ; " ---
             const scoreParts = games.map(buildScoreForGame).filter(Boolean);
             if (scoreParts.length === 0) setOutput("out-score", "(pick teams in at least one game)");
             else setOutput("out-score", `!editcom !score -a=!echo $(touser) | ${scoreParts.join(" ; ")} | !maps`);
