@@ -488,6 +488,102 @@
             .card { padding: 20px; }
             .map-row { grid-template-columns: 1fr 1fr; }
         }
+
+        /* Share code card */
+        .share-code-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            cursor: pointer;
+            user-select: none;
+        }
+        .share-code-header .card-title { margin: 0; }
+        .share-code-chevron {
+            color: var(--text-dim);
+            font-size: 1rem;
+            transition: transform 0.2s;
+        }
+        .share-code-card.collapsed .share-code-chevron { transform: rotate(-90deg); }
+        .share-code-card.collapsed .share-code-body { display: none; }
+        .share-code-body {
+            margin-top: 14px;
+            display: flex;
+            flex-direction: column;
+            gap: 10px;
+        }
+        #shareCodeText {
+            width: 100%;
+            padding: 11px 14px;
+            font-family: ui-monospace, Menlo, Consolas, monospace;
+            font-size: 0.78rem;
+            line-height: 1.45;
+            background: var(--surface-bright);
+            color: var(--text);
+            border: 1px solid var(--border);
+            border-radius: 8px;
+            resize: vertical;
+            word-break: break-all;
+            min-height: 64px;
+        }
+        #shareCodeText:focus {
+            outline: none;
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px var(--accent-glow);
+        }
+        .share-code-actions {
+            display: flex;
+            gap: 8px;
+            align-items: center;
+        }
+        .share-code-actions .code-btn {
+            position: static;
+            padding: 7px 16px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.78rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--surface-bright);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s, background 0.2s;
+        }
+        .share-code-actions .code-btn:hover { color: var(--text); border-color: var(--text-dim); }
+        .share-code-actions .code-btn.ok { color: var(--ok); border-color: var(--ok); }
+        .share-code-status {
+            font-size: 0.78rem;
+            color: var(--text-dim);
+            flex: 1;
+            text-align: right;
+        }
+        .share-code-status.error { color: var(--danger); font-weight: 600; }
+        .share-code-status.ok { color: var(--ok); font-weight: 600; }
+
+        /* Game-card header (title + Clear button) */
+        .game-card-header {
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            margin-bottom: 18px;
+        }
+        .game-card-header .card-title { margin-bottom: 0; }
+        .clear-game-btn {
+            padding: 5px 12px;
+            font-family: 'Inter', sans-serif;
+            font-size: 0.7rem;
+            font-weight: 600;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
+            background: var(--surface-bright);
+            color: var(--text-dim);
+            border: 1px solid var(--border);
+            border-radius: 6px;
+            cursor: pointer;
+            transition: color 0.2s, border-color 0.2s;
+        }
+        .clear-game-btn:hover { color: var(--danger); border-color: var(--danger); }
     </style>
 </head>
 
@@ -495,6 +591,22 @@
 
     <h1>VCT Day Builder</h1>
     <p class="subtitle">Multi-game day, talent, casters — generate all <code>!editcom</code> strings</p>
+
+    <div class="card share-code-card collapsed" id="shareCodeCard" style="max-width: 780px;">
+        <div class="share-code-header" id="shareCodeHeader">
+            <div class="card-title">Share Code</div>
+            <span class="share-code-chevron">▾</span>
+        </div>
+        <div class="share-code-body">
+            <textarea id="shareCodeText" rows="3" spellcheck="false" placeholder="Code will appear here as you set things up…"></textarea>
+            <div class="share-code-actions">
+                <button type="button" id="copyCodeBtn" class="code-btn">Copy</button>
+                <button type="button" id="loadCodeBtn" class="code-btn">Load</button>
+                <span class="share-code-status" id="shareCodeStatus"></span>
+            </div>
+            <p class="hint">Auto-updates as you change settings. To restore from a shared code: paste it above and click Load.</p>
+        </div>
+    </div>
 
     <div class="top-bar">
         <label for="gamesCount">Games today</label>
@@ -752,7 +864,10 @@
             // Game 2+ default to TBD
             const tbdDefault = idx >= 1 ? " checked" : "";
             card.innerHTML = `
-                <div class="card-title">Game ${idx + 1}</div>
+                <div class="game-card-header">
+                    <div class="card-title">Game ${idx + 1}</div>
+                    <button type="button" class="clear-game-btn" title="Reset this game to defaults">Clear</button>
+                </div>
                 <label class="tbd-row">
                     <input type="checkbox" class="tbd-toggle"${tbdDefault} />
                     <span>Mark this game as TBD (not played yet)</span>
@@ -874,6 +989,8 @@
             tbdToggle.addEventListener("change", () => {
                 gameCard.classList.toggle("is-tbd", tbdToggle.checked);
             });
+            const clearBtn = gameCard.querySelector(".clear-game-btn");
+            clearBtn.addEventListener("click", () => clearGameCard(gameCard));
             if (tbdToggle.checked) gameCard.classList.add("is-tbd");
             buildMapRowsFor(gameCard);
         }
@@ -1105,6 +1222,248 @@
                 });
             });
         });
+
+        // ---- SHARE CODE (compact array → base64url) ----
+        //
+        // Schema v2 (positional, no keys — keeps the code short):
+        //   [v, gc, games, [talentBits, talentOther], amerBits, emeaBits, pacBits, castersOther]
+        //   game = [tbd, aIdx, bIdx, bo, maps]
+        //   map  = [mIdx, sideBit, sA, sB]   (-1 = unset/empty, side 0=def 1=atk)
+        // Team / map / talent / caster indices reference position in `teams`,
+        // `MAPS`, `TALENT`, and `CASTERS.*` respectively. Only `gc` games are
+        // encoded; invisible cards restore to defaults on load. Trailing empty
+        // map rows are dropped before encoding.
+        const CODE_VERSION = 2;
+
+        function b64urlEncode(str) {
+            const bytes = new TextEncoder().encode(str);
+            let bin = "";
+            bytes.forEach(b => bin += String.fromCharCode(b));
+            return btoa(bin).replace(/\+/g, "-").replace(/\//g, "_").replace(/=+$/, "");
+        }
+
+        function b64urlDecode(str) {
+            let s = str.replace(/-/g, "+").replace(/_/g, "/");
+            while (s.length % 4) s += "=";
+            const bin = atob(s);
+            const bytes = new Uint8Array(bin.length);
+            for (let i = 0; i < bin.length; i++) bytes[i] = bin.charCodeAt(i);
+            return new TextDecoder().decode(bytes);
+        }
+
+        function teamToIdx(name) { return name ? teams.findIndex(t => t.name === name) : -1; }
+        function idxToTeam(i)    { return (i >= 0 && i < teams.length) ? teams[i] : null; }
+        function mapToIdx(name)  { return name ? MAPS.indexOf(name) : -1; }
+        function idxToMap(i)     { return (i >= 0 && i < MAPS.length) ? MAPS[i] : ""; }
+
+        function parseScore(s) {
+            if (s === "" || s == null) return -1;
+            const n = parseInt(s, 10);
+            return isNaN(n) ? -1 : n;
+        }
+        function scoreToStr(n) { return n < 0 ? "" : String(n); }
+
+        function bitmask(list, selector) {
+            const set = new Set([...document.querySelectorAll(selector)].map(c => c.value));
+            return list.reduce((m, name, i) => set.has(name) ? m | (1 << i) : m, 0);
+        }
+        function setFromBitmask(list, mask, selector) {
+            const want = new Set(list.filter((_, i) => mask & (1 << i)));
+            document.querySelectorAll(selector).forEach(c => { c.checked = want.has(c.value); });
+        }
+
+        function isEmptyMap(m) { return m[0] === -1 && m[2] === -1 && m[3] === -1; }
+
+        function readGameCompact(card) {
+            const aRaw = card.querySelector(".team-a-select").value;
+            const bRaw = card.querySelector(".team-b-select").value;
+            const maps = [...card.querySelectorAll(".map-row")].map(row => [
+                mapToIdx(row.querySelector(".map-select").value),
+                row.querySelector(".side-select").value === "atk" ? 1 : 0,
+                parseScore(row.querySelector(".score-a").value),
+                parseScore(row.querySelector(".score-b").value),
+            ]);
+            while (maps.length && isEmptyMap(maps[maps.length - 1])) maps.pop();
+            return [
+                card.querySelector(".tbd-toggle").checked ? 1 : 0,
+                teamToIdx(aRaw ? JSON.parse(aRaw).name : ""),
+                teamToIdx(bRaw ? JSON.parse(bRaw).name : ""),
+                card.querySelector(".bo3-btn").classList.contains("active") ? 3 : 5,
+                maps,
+            ];
+        }
+
+        function buildCode() {
+            const gc = parseInt(gamesCountSel.value, 10);
+            const games = [...gameCardsContainer.querySelectorAll(".game-card")]
+                .slice(0, gc)
+                .map(readGameCompact);
+            const arr = [
+                CODE_VERSION,
+                gc,
+                games,
+                [bitmask(TALENT, ".talent-check:checked"), document.getElementById("talentOther").value],
+                bitmask(CASTERS.amer, '[data-caster-region="amer"] .caster-check:checked'),
+                bitmask(CASTERS.emea, '[data-caster-region="emea"] .caster-check:checked'),
+                bitmask(CASTERS.pac,  '[data-caster-region="pac"] .caster-check:checked'),
+                document.getElementById("castersOther").value,
+            ];
+            return b64urlEncode(JSON.stringify(arr));
+        }
+
+        function setSelectByTeamName(selectEl, name) {
+            if (!name) { selectEl.selectedIndex = 0; return; }
+            for (const opt of selectEl.options) {
+                if (!opt.value) continue;
+                try {
+                    if (JSON.parse(opt.value).name === name) { selectEl.value = opt.value; return; }
+                } catch (_) { /* skip */ }
+            }
+            selectEl.selectedIndex = 0;
+        }
+
+        function applyCompactGame(card, g) {
+            const [tbd, aIdx, bIdx, bo, maps] = g;
+            const tbdEl = card.querySelector(".tbd-toggle");
+            tbdEl.checked = !!tbd;
+            card.classList.toggle("is-tbd", tbdEl.checked);
+
+            const aTeam = idxToTeam(aIdx);
+            const bTeam = idxToTeam(bIdx);
+            setSelectByTeamName(card.querySelector(".team-a-select"), aTeam ? aTeam.name : "");
+            setSelectByTeamName(card.querySelector(".team-b-select"), bTeam ? bTeam.name : "");
+
+            const bo3 = card.querySelector(".bo3-btn");
+            const bo5 = card.querySelector(".bo5-btn");
+            if (bo === 5 && !bo5.classList.contains("active")) bo5.click();
+            else if (bo !== 5 && !bo3.classList.contains("active")) bo3.click();
+
+            // Iterate rows so trailing entries are reset when the loaded
+            // state has fewer / dropped map tuples than the current format.
+            const rows = card.querySelectorAll(".map-row");
+            rows.forEach((row, i) => {
+                const m = (maps || [])[i] || [-1, 0, -1, -1];
+                row.querySelector(".map-select").value  = idxToMap(m[0]);
+                row.querySelector(".side-select").value = m[1] ? "atk" : "def";
+                const aIn = row.querySelector(".score-a");
+                const bIn = row.querySelector(".score-b");
+                aIn.value = scoreToStr(m[2]);
+                bIn.value = scoreToStr(m[3]);
+                aIn.dispatchEvent(new Event("input", { bubbles: true }));
+            });
+        }
+
+        function applyCompact(arr) {
+            if (!Array.isArray(arr) || arr.length < 8) throw new Error("Invalid code data");
+            const [v, gc, games, talentTuple, amerBits, emeaBits, pacBits, castersOther] = arr;
+            if (v !== CODE_VERSION) throw new Error(`Unsupported code version (${v})`);
+
+            gamesCountSel.value = String(gc || 2);
+            applyGamesCount();
+
+            const cards = [...gameCardsContainer.querySelectorAll(".game-card")];
+            cards.forEach((card, i) => {
+                const g = (games || [])[i] || [i >= 1 ? 1 : 0, -1, -1, 3, []];
+                applyCompactGame(card, g);
+            });
+
+            const [talentBits, talentOther] = talentTuple || [0, ""];
+            setFromBitmask(TALENT, talentBits || 0, ".talent-check");
+            document.getElementById("talentOther").value = talentOther || "";
+            setFromBitmask(CASTERS.amer, amerBits || 0, '[data-caster-region="amer"] .caster-check');
+            setFromBitmask(CASTERS.emea, emeaBits || 0, '[data-caster-region="emea"] .caster-check');
+            setFromBitmask(CASTERS.pac,  pacBits  || 0, '[data-caster-region="pac"] .caster-check');
+            document.getElementById("castersOther").value = castersOther || "";
+        }
+
+        function loadCode(codeStr) {
+            const trimmed = (codeStr || "").trim();
+            if (!trimmed) throw new Error("Paste a code first");
+            let json;
+            try { json = b64urlDecode(trimmed); }
+            catch (_) { throw new Error("Invalid code format"); }
+            let parsed;
+            try { parsed = JSON.parse(json); }
+            catch (_) { throw new Error("Invalid code data"); }
+            applyCompact(parsed);
+        }
+
+        function clearGameCard(card) {
+            const idx = parseInt(card.dataset.gameIdx, 10);
+            applyCompactGame(card, [idx >= 1 ? 1 : 0, -1, -1, 3, []]);
+            updateShareCode();
+        }
+
+        // ---- SHARE CODE — UI WIRING ----
+        const shareCodeCard   = document.getElementById("shareCodeCard");
+        const shareCodeHeader = document.getElementById("shareCodeHeader");
+        const shareCodeText   = document.getElementById("shareCodeText");
+        const copyCodeBtn     = document.getElementById("copyCodeBtn");
+        const loadCodeBtn     = document.getElementById("loadCodeBtn");
+        const shareCodeStatus = document.getElementById("shareCodeStatus");
+
+        shareCodeHeader.addEventListener("click", () => shareCodeCard.classList.toggle("collapsed"));
+
+        function flashStatus(msg, kind) {
+            shareCodeStatus.textContent = msg;
+            shareCodeStatus.classList.remove("error", "ok");
+            if (kind) shareCodeStatus.classList.add(kind);
+            if (!msg) return;
+            setTimeout(() => {
+                if (shareCodeStatus.textContent !== msg) return;
+                shareCodeStatus.textContent = "";
+                shareCodeStatus.classList.remove("error", "ok");
+            }, 2200);
+        }
+
+        let isApplyingCode = false;
+        function updateShareCode() {
+            if (isApplyingCode) return;
+            if (document.activeElement === shareCodeText) return; // don't clobber an in-progress paste
+            shareCodeText.value = buildCode();
+        }
+
+        document.body.addEventListener("input", e => {
+            if (e.target === shareCodeText) return;
+            updateShareCode();
+        });
+        document.body.addEventListener("change", e => {
+            if (e.target === shareCodeText) return;
+            updateShareCode();
+        });
+        // BO toggle buttons rebuild map rows but don't fire change events — catch their clicks.
+        gameCardsContainer.addEventListener("click", e => {
+            if (e.target.matches(".bo3-btn, .bo5-btn")) setTimeout(updateShareCode, 0);
+        });
+
+        copyCodeBtn.addEventListener("click", () => {
+            const code = shareCodeText.value.trim();
+            if (!code) { flashStatus("Nothing to copy", "error"); return; }
+            navigator.clipboard.writeText(code).then(
+                () => {
+                    copyCodeBtn.textContent = "Copied!";
+                    copyCodeBtn.classList.add("ok");
+                    setTimeout(() => { copyCodeBtn.textContent = "Copy"; copyCodeBtn.classList.remove("ok"); }, 1500);
+                },
+                () => flashStatus("Clipboard blocked", "error"),
+            );
+        });
+
+        loadCodeBtn.addEventListener("click", () => {
+            isApplyingCode = true;
+            try {
+                loadCode(shareCodeText.value);
+                shareCodeText.value = buildCode(); // normalize the field after applying
+                flashStatus("Loaded!", "ok");
+            } catch (err) {
+                flashStatus(err.message || "Failed to load", "error");
+            } finally {
+                isApplyingCode = false;
+            }
+        });
+
+        // initial paint
+        updateShareCode();
     </script>
 </body>
 
