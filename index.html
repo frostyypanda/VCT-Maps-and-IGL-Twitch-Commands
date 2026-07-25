@@ -695,11 +695,11 @@
             { region: "VCT Americas", name: "Evil Geniuses", igl: "Pa1ncakes", coach: "Potter", tag: "EG" },
             { region: "VCT Americas", name: "LOUD", igl: "erde", coach: "Romanilly", tag: "LOUD" },
             { region: "VCT Americas", name: "FURIA", igl: "artzin", coach: "shaW", tag: "Furia" },
-            { region: "VCT Americas", name: "Envy", igl: "P0PPIN", coach: "Stunner", tag: "ENVY" },
+            { region: "VCT Americas", name: "Envy", igl: "Rossy", coach: "Stunner", tag: "ENVY" },
             { region: "VCT EMEA", name: "Fnatic", igl: "Boaster", coach: "Milan", tag: "FNC" },
             { region: "VCT EMEA", name: "Team Heretics", igl: "Boo", coach: "neilzinho", tag: "TH" },
             { region: "VCT EMEA", name: "Team Liquid", igl: "nAts", coach: "LohaN", tag: "TL" },
-            { region: "VCT EMEA", name: "GIANTX", igl: "Cloud", coach: "pipsoN", tag: "GX" },
+            { region: "VCT EMEA", name: "GIANTX", igl: "flickless", coach: "pipsoN", tag: "GX" },
             { region: "VCT EMEA", name: "BBL Esports", igl: "Rosé", coach: "KEY", tag: "BBL" },
             { region: "VCT EMEA", name: "NAVI", igl: "chloric", coach: "ANGE1", tag: "NAVI" },
             { region: "VCT EMEA", name: "Team Vitality", igl: "Jamppi", coach: "PAL", tag: "VIT" },
@@ -710,15 +710,15 @@
             { region: "VCT EMEA", name: "Eternal Fire", igl: "nekky", coach: "adr0nfire", tag: "EF" },
             { region: "VCT Pacific", name: "Paper Rex", igl: "f0rsakeN", coach: "alecks", tag: "PRX" },
             { region: "VCT Pacific", name: "DRX", igl: "MaKo", coach: "termi", tag: "DRX" },
-            { region: "VCT Pacific", name: "GEN.G Esports", igl: "Lakia", coach: "solo", tag: "GenG" },
+            { region: "VCT Pacific", name: "GEN.G Esports", igl: "Efina", coach: "solo", tag: "GenG" },
             { region: "VCT Pacific", name: "RRQ", igl: "crazyguy", coach: "Warbirds", tag: "RRQ" },
             { region: "VCT Pacific", name: "T1", igl: "Munchkin", coach: "KDG", tag: "T1" },
             { region: "VCT Pacific", name: "Nongshim Redforce", igl: "Rb", coach: "SilKanoN", tag: "NS" },
             { region: "VCT Pacific", name: "ZETA Division", igl: "SugarZ3ro", coach: "XQQ", tag: "ZETA" },
             { region: "VCT Pacific", name: "DFM", igl: "SSeeS", coach: "Vorz", tag: "DFM" },
-            { region: "VCT Pacific", name: "Team Secret", igl: "JessieVash", coach: "Rbtx", tag: "TS" },
-            { region: "VCT Pacific", name: "Global Esports", igl: "xavi8k", coach: "FrosT", tag: "GE" },
-            { region: "VCT Pacific", name: "Full Sense", igl: "crws", coach: "THEELOVEFAMILY", tag: "FS" },
+            { region: "VCT Pacific", name: "Team Secret", igl: "Styron", coach: "spin", tag: "TS" },
+            { region: "VCT Pacific", name: "Global Esports", igl: "xavi8k", coach: "Platoon", tag: "GE" },
+            { region: "VCT Pacific", name: "Full Sense", igl: "crws", coach: "Frost", tag: "FS" },
             { region: "VCT Pacific", name: "Varrel", igl: "oonzmlp", coach: "TK9", tag: "VL" },
             { region: "VCT China", name: "Xi Lai Gaming", igl: "WsLeo", coach: "hvoya", tag: "XLG" },
             { region: "VCT China", name: "Bilibili Gaming", igl: "nephh", coach: "Muggle", tag: "BLG" },
@@ -733,7 +733,7 @@
             { region: "VCT China", name: "All Gamers", igl: "K1ra", coach: "ED101", tag: "AG" },
             { region: "VCT China", name: "JD Gaming", igl: "coconut", coach: "bail", tag: "JDG" },
         ];
-        const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode"];
+        const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode", "Summit"];
 
         const TALENT = ["Achilios", "Bren", "Shyo", "egg", "Elevated", "Chobra", "Mimi"];
 
@@ -1145,7 +1145,13 @@
             const others = otherRaw ? otherRaw.split(/\s+/) : [];
             const all = [...checked, ...others].map(overrideName);
             if (all.length === 0) return fallback;
-            return combineNames(all).join(" ");
+            return formatNameList(combineNames(all));
+        }
+
+        function formatNameList(names) {
+            if (names.length <= 1) return names.join("");
+            if (names.length === 2) return `${names[0]} & ${names[1]}`;
+            return `${names.slice(0, -1).join(", ")} & ${names[names.length - 1]}`;
         }
 
         function buildCallLine()    { return buildNameList(".talent-check:checked", "talentOther",  "TheVoices"); }
