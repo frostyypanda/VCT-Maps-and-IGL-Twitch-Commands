@@ -734,6 +734,8 @@
             { region: "VCT China", name: "JD Gaming", igl: "coconut", coach: "bail", tag: "JDG" },
         ];
         const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode", "Summit"];
+        const CURRENT_MAPS = ["Ascent", "Breeze", "Haven", "Lotus", "Split", "Summit", "Sunset"];
+        const NON_CURRENT_MAPS = MAPS.filter(m => !CURRENT_MAPS.includes(m)).sort((a, b) => a.localeCompare(b));
 
         const TALENT = ["Achilios", "Bren", "Shyo", "egg", "Elevated", "Chobra", "Mimi"];
 
@@ -905,7 +907,7 @@
                 if (slot.type === "A_PICK") typeLabel = "Team A pick";
                 else if (slot.type === "B_PICK") typeLabel = "Team B pick";
                 else { typeLabel = "Decider"; typeClass = "decider"; }
-                const mapOpts = MAPS.map(m => `<option value="${m}">${m}</option>`).join("");
+                const mapOpts = buildMapOptions();
                 const sideLabel = slot.type === "DECIDER" ? "Side (Team A)" : "Opponent side";
                 row.innerHTML = `
                     <div class="map-num ${typeClass}">${slot.label} · ${typeLabel}</div>
@@ -967,6 +969,20 @@
                 aIn.addEventListener("input", update);
                 bIn.addEventListener("input", update);
             });
+        }
+
+        function buildMapOptions() {
+            const current = CURRENT_MAPS.map(m => `<option value="${m}">${m}</option>`).join("");
+            const nonCurrent = NON_CURRENT_MAPS.map(m => `<option value="${m}">${m}</option>`).join("");
+            return `
+                <optgroup label="Current maps">
+                    ${current}
+                </optgroup>
+                <option value="" disabled>────────────</option>
+                <optgroup label="Non-current maps">
+                    ${nonCurrent}
+                </optgroup>
+            `;
         }
 
         function wireGameCard(gameCard) {
