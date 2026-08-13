@@ -14,7 +14,7 @@ Open `index.html` in a browser. No build, no server.
   - `!score` — running score across all games of the day
   - `!call` — on-air talent for the broadcast
   - `!casters` — play-by-play casters, grouped by region (Americas / EMEA / Pacific)
-- **Roster data baked in** — team IGLs, coaches, and channel-specific tag abbreviations for every VCT international team, with manual roster updates only (no upstream auto-sync — what's in the file is what ships).
+- **Roster data baked in + custom teams** — team IGLs, coaches, and channel-specific tag abbreviations for every VCT international team, plus an "Other team" option for tier 2 / ad hoc teams.
 - **Display-time name overrides** — handle edge cases like the Brenshow combine rule without mutating roster data.
 - **Talent + caster pickers** — checkbox grids per region with a free-text "Other" field for anyone not in the preset list.
 - **Copy-to-clipboard buttons** on each generated command.

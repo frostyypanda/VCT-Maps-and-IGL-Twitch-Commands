@@ -193,6 +193,22 @@
             border-color: var(--accent-2);
             box-shadow: 0 0 0 3px var(--accent-2-glow);
         }
+        .team-col:last-child input:focus {
+            border-color: var(--accent-2);
+            box-shadow: 0 0 0 3px var(--accent-2-glow);
+        }
+
+        .custom-team-fields {
+            display: none;
+            grid-template-columns: 1fr 1fr 1fr;
+            gap: 8px;
+            margin-top: 8px;
+        }
+        .team-col.is-custom .custom-team-fields { display: grid; }
+        .custom-team-fields input {
+            font-size: 0.82rem;
+            padding: 9px 10px;
+        }
 
         optgroup { font-weight: 700; color: var(--text-dim); }
         option { font-weight: 500; color: var(--text); background: var(--surface-bright); padding: 6px; }
@@ -483,6 +499,7 @@
 
         @media (max-width: 600px) {
             .matchup-grid { grid-template-columns: 1fr; gap: 10px; }
+            .custom-team-fields { grid-template-columns: 1fr; }
             .vs { padding: 0; }
             h1 { font-size: 1.5rem; }
             .card { padding: 20px; }
@@ -694,7 +711,7 @@
             { region: "VCT Americas", name: "KRÜ Esports", igl: "saadhak", coach: "ZONYK", tag: "KRU" },
             { region: "VCT Americas", name: "Evil Geniuses", igl: "Pa1ncakes", coach: "Potter", tag: "EG" },
             { region: "VCT Americas", name: "LOUD", igl: "erde", coach: "Romanilly", tag: "LOUD" },
-            { region: "VCT Americas", name: "FURIA", igl: "C0M", coach: "shaW", tag: "Furia" },
+            { region: "VCT Americas", name: "FURIA", igl: "C0M", coach: "shaW", tag: "FUR" },
             { region: "VCT Americas", name: "Envy", igl: "Rossy", coach: "Stunner", tag: "ENVY" },
             { region: "VCT EMEA", name: "Fnatic", igl: "Boaster", coach: "Engh", tag: "FNC" },
             { region: "VCT EMEA", name: "Team Heretics", igl: "Boo", coach: "neilzinho", tag: "TH" },
@@ -733,6 +750,7 @@
             { region: "VCT China", name: "All Gamers", igl: "K1ra", coach: "ED101", tag: "AG" },
             { region: "VCT China", name: "JD Gaming", igl: "coconut", coach: "bail", tag: "JDG" },
         ];
+        const CUSTOM_TEAM_VALUE = "__custom_team__";
         const MAPS = ["Haven", "Split", "Pearl", "Fracture", "Abyss", "Sunset", "Lotus", "Bind", "Ascent", "Icebox", "Breeze", "Corrode", "Summit"];
         const CURRENT_MAPS = ["Ascent", "Breeze", "Haven", "Lotus", "Split", "Summit", "Sunset"];
         const NON_CURRENT_MAPS = MAPS.filter(m => !CURRENT_MAPS.includes(m)).sort((a, b) => a.localeCompare(b));
@@ -838,6 +856,15 @@
                     });
                 selectEl.appendChild(group);
             });
+            const divider = document.createElement("option");
+            divider.value = "";
+            divider.disabled = true;
+            divider.textContent = "────────────";
+            selectEl.appendChild(divider);
+            const custom = document.createElement("option");
+            custom.value = CUSTOM_TEAM_VALUE;
+            custom.textContent = "Other team";
+            selectEl.appendChild(custom);
         }
 
         function buildCheckboxGrid(containerEl, options, classPrefix) {
@@ -878,11 +905,21 @@
                     <div class="team-col">
                         <label>Team A</label>
                         <select class="team-a-select"></select>
+                        <div class="custom-team-fields">
+                            <input type="text" class="custom-team-tag" placeholder="Abbr." />
+                            <input type="text" class="custom-team-igl" placeholder="IGL" />
+                            <input type="text" class="custom-team-coach" placeholder="Coach" />
+                        </div>
                     </div>
                     <div class="vs">VS</div>
                     <div class="team-col">
                         <label>Team B</label>
                         <select class="team-b-select"></select>
+                        <div class="custom-team-fields">
+                            <input type="text" class="custom-team-tag" placeholder="Abbr." />
+                            <input type="text" class="custom-team-igl" placeholder="IGL" />
+                            <input type="text" class="custom-team-coach" placeholder="Coach" />
+                        </div>
                     </div>
                 </div>
                 <div class="bo-toggle">
@@ -988,6 +1025,7 @@
         function wireGameCard(gameCard) {
             populateTeamSelect(gameCard.querySelector(".team-a-select"));
             populateTeamSelect(gameCard.querySelector(".team-b-select"));
+            gameCard.querySelectorAll(".team-col").forEach(wireCustomTeamCol);
             const bo3Btn = gameCard.querySelector(".bo3-btn");
             const bo5Btn = gameCard.querySelector(".bo5-btn");
             const tbdToggle = gameCard.querySelector(".tbd-toggle");
@@ -1011,6 +1049,16 @@
             buildMapRowsFor(gameCard);
         }
 
+        function wireCustomTeamCol(teamCol) {
+            const selectEl = teamCol.querySelector("select");
+            selectEl.addEventListener("change", () => updateCustomTeamVisibility(teamCol));
+            updateCustomTeamVisibility(teamCol);
+        }
+
+        function updateCustomTeamVisibility(teamCol) {
+            teamCol.classList.toggle("is-custom", teamCol.querySelector("select").value === CUSTOM_TEAM_VALUE);
+        }
+
         for (let i = 0; i < MAX_GAMES; i++) {
             const card = buildGameCardEl(i);
             gameCardsContainer.appendChild(card);
@@ -1029,14 +1077,28 @@
         applyGamesCount();
 
         // ---- READ A GAME ----
+        function readTeamFromCol(teamCol) {
+            const selectEl = teamCol.querySelector("select");
+            if (!selectEl.value) return null;
+            if (selectEl.value !== CUSTOM_TEAM_VALUE) return JSON.parse(selectEl.value);
+
+            const tag = teamCol.querySelector(".custom-team-tag").value.trim();
+            if (!tag) return null;
+            return {
+                region: "Other",
+                name: tag,
+                igl: teamCol.querySelector(".custom-team-igl").value.trim() || "tbd",
+                coach: teamCol.querySelector(".custom-team-coach").value.trim() || "tbd",
+                tag,
+            };
+        }
+
         function gameInfo(gameCard) {
-            const aRaw = gameCard.querySelector(".team-a-select").value;
-            const bRaw = gameCard.querySelector(".team-b-select").value;
             const bestOf = gameCard.querySelector(".bo3-btn").classList.contains("active") ? 3 : 5;
             const isTBD = gameCard.querySelector(".tbd-toggle").checked;
             return {
-                a: aRaw ? JSON.parse(aRaw) : null,
-                b: bRaw ? JSON.parse(bRaw) : null,
+                a: readTeamFromCol(gameCard.querySelector(".team-col:first-child")),
+                b: readTeamFromCol(gameCard.querySelector(".team-col:last-child")),
                 bestOf,
                 isTBD,
                 gameCard,
@@ -1247,15 +1309,16 @@
 
         // ---- SHARE CODE (compact array → base64url) ----
         //
-        // Schema v2 (positional, no keys — keeps the code short):
+        // Schema v3 (positional, no keys — keeps the code short):
         //   [v, gc, games, [talentBits, talentOther], amerBits, emeaBits, pacBits, castersOther]
-        //   game = [tbd, aIdx, bIdx, bo, maps]
+        //   game = [tbd, aTeam, bTeam, bo, maps]
+        //   team = preset index, -1, or [tag, igl, coach] for custom teams
         //   map  = [mIdx, sideBit, sA, sB]   (-1 = unset/empty, side 0=def 1=atk)
         // Team / map / talent / caster indices reference position in `teams`,
         // `MAPS`, `TALENT`, and `CASTERS.*` respectively. Only `gc` games are
         // encoded; invisible cards restore to defaults on load. Trailing empty
         // map rows are dropped before encoding.
-        const CODE_VERSION = 2;
+        const CODE_VERSION = 3;
 
         function b64urlEncode(str) {
             const bytes = new TextEncoder().encode(str);
@@ -1273,7 +1336,6 @@
             return new TextDecoder().decode(bytes);
         }
 
-        function teamToIdx(name) { return name ? teams.findIndex(t => t.name === name) : -1; }
         function idxToTeam(i)    { return (i >= 0 && i < teams.length) ? teams[i] : null; }
         function mapToIdx(name)  { return name ? MAPS.indexOf(name) : -1; }
         function idxToMap(i)     { return (i >= 0 && i < MAPS.length) ? MAPS[i] : ""; }
@@ -1296,9 +1358,20 @@
 
         function isEmptyMap(m) { return m[0] === -1 && m[2] === -1 && m[3] === -1; }
 
+        function readTeamCompact(card, side) {
+            const teamCol = card.querySelector(side === "a" ? ".team-col:first-child" : ".team-col:last-child");
+            const selectEl = teamCol.querySelector("select");
+            if (!selectEl.value) return -1;
+            if (selectEl.value === CUSTOM_TEAM_VALUE) {
+                const tag = teamCol.querySelector(".custom-team-tag").value.trim();
+                const igl = teamCol.querySelector(".custom-team-igl").value.trim();
+                const coach = teamCol.querySelector(".custom-team-coach").value.trim();
+                return tag || igl || coach ? [tag, igl, coach] : -1;
+            }
+            return teams.findIndex(t => t.name === JSON.parse(selectEl.value).name);
+        }
+
         function readGameCompact(card) {
-            const aRaw = card.querySelector(".team-a-select").value;
-            const bRaw = card.querySelector(".team-b-select").value;
             const maps = [...card.querySelectorAll(".map-row")].map(row => [
                 mapToIdx(row.querySelector(".map-select").value),
                 row.querySelector(".side-select").value === "atk" ? 1 : 0,
@@ -1308,8 +1381,8 @@
             while (maps.length && isEmptyMap(maps[maps.length - 1])) maps.pop();
             return [
                 card.querySelector(".tbd-toggle").checked ? 1 : 0,
-                teamToIdx(aRaw ? JSON.parse(aRaw).name : ""),
-                teamToIdx(bRaw ? JSON.parse(bRaw).name : ""),
+                readTeamCompact(card, "a"),
+                readTeamCompact(card, "b"),
                 card.querySelector(".bo3-btn").classList.contains("active") ? 3 : 5,
                 maps,
             ];
@@ -1334,14 +1407,51 @@
         }
 
         function setSelectByTeamName(selectEl, name) {
-            if (!name) { selectEl.selectedIndex = 0; return; }
+            const teamCol = selectEl.closest(".team-col");
+            if (!name) {
+                selectEl.selectedIndex = 0;
+                clearCustomTeamFields(teamCol);
+                updateCustomTeamVisibility(teamCol);
+                return;
+            }
             for (const opt of selectEl.options) {
                 if (!opt.value) continue;
                 try {
-                    if (JSON.parse(opt.value).name === name) { selectEl.value = opt.value; return; }
+                    if (JSON.parse(opt.value).name === name) {
+                        selectEl.value = opt.value;
+                        clearCustomTeamFields(teamCol);
+                        updateCustomTeamVisibility(teamCol);
+                        return;
+                    }
                 } catch (_) { /* skip */ }
             }
             selectEl.selectedIndex = 0;
+            clearCustomTeamFields(teamCol);
+            updateCustomTeamVisibility(teamCol);
+        }
+
+        function clearCustomTeamFields(teamCol) {
+            teamCol.querySelector(".custom-team-tag").value = "";
+            teamCol.querySelector(".custom-team-igl").value = "";
+            teamCol.querySelector(".custom-team-coach").value = "";
+        }
+
+        function setCustomTeam(teamCol, data) {
+            const [tag = "", igl = "", coach = ""] = Array.isArray(data) ? data : [];
+            teamCol.querySelector("select").value = CUSTOM_TEAM_VALUE;
+            teamCol.querySelector(".custom-team-tag").value = tag;
+            teamCol.querySelector(".custom-team-igl").value = igl;
+            teamCol.querySelector(".custom-team-coach").value = coach;
+            updateCustomTeamVisibility(teamCol);
+        }
+
+        function applyTeamCompact(teamCol, ref) {
+            if (Array.isArray(ref)) {
+                setCustomTeam(teamCol, ref);
+                return;
+            }
+            const team = idxToTeam(ref);
+            setSelectByTeamName(teamCol.querySelector("select"), team ? team.name : "");
         }
 
         function applyCompactGame(card, g) {
@@ -1350,10 +1460,8 @@
             tbdEl.checked = !!tbd;
             card.classList.toggle("is-tbd", tbdEl.checked);
 
-            const aTeam = idxToTeam(aIdx);
-            const bTeam = idxToTeam(bIdx);
-            setSelectByTeamName(card.querySelector(".team-a-select"), aTeam ? aTeam.name : "");
-            setSelectByTeamName(card.querySelector(".team-b-select"), bTeam ? bTeam.name : "");
+            applyTeamCompact(card.querySelector(".team-col:first-child"), aIdx);
+            applyTeamCompact(card.querySelector(".team-col:last-child"), bIdx);
 
             const bo3 = card.querySelector(".bo3-btn");
             const bo5 = card.querySelector(".bo5-btn");
@@ -1378,7 +1486,7 @@
         function applyCompact(arr) {
             if (!Array.isArray(arr) || arr.length < 8) throw new Error("Invalid code data");
             const [v, gc, games, talentTuple, amerBits, emeaBits, pacBits, castersOther] = arr;
-            if (v !== CODE_VERSION) throw new Error(`Unsupported code version (${v})`);
+            if (v !== CODE_VERSION && v !== 2) throw new Error(`Unsupported code version (${v})`);
 
             gamesCountSel.value = String(gc || 2);
             applyGamesCount();
